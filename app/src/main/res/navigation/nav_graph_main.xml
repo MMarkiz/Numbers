@@ -8,21 +8,22 @@
     <fragment
         android:id="@+id/ListFragment"
         android:name="com.sii.numbers.list.ListFragment"
-        android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_list">
 
         <action
             android:id="@+id/action_ListFragment_to_DetailsFragment"
             app:destination="@id/DetailsFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/DetailsFragment"
         android:name="com.sii.numbers.details.DetailsFragment"
-        android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_details">
 
-        <action
-            android:id="@+id/action_DetailsFragment_to_ListFragment"
-            app:destination="@id/ListFragment" />
+        <argument
+            android:name="name"
+            app:argType="string"
+            app:nullable="false"/>
     </fragment>
+
 </navigation>

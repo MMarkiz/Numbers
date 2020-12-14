@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_details"
+    app:startDestination="@id/DetailsFragment">
+
+    <fragment
+        android:id="@+id/DetailsFragment"
+        android:name="com.sii.numbers.details.DetailsFragment"
+        tools:layout="@layout/fragment_details">
+
+        <argument
+            android:name="name"
+            app:argType="string"
+            app:nullable="false"/>
+    </fragment>
+</navigation>

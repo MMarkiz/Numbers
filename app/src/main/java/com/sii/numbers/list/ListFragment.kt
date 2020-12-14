@@ -5,11 +5,11 @@ import android.os.StrictMode
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.AsyncTaskLoader
 import androidx.loader.content.Loader
-import androidx.navigation.navGraphViewModels
 import com.sii.numbers.R
 import com.sii.numbers.core.BaseFragment
 import com.sii.numbers.core.Constants.GET_DATA_LOADER_ID
@@ -26,9 +26,11 @@ import java.io.IOException
 
 class ListFragment : BaseFragment(), LoaderManager.LoaderCallbacks<Response> {
 
-    private val viewModel by navGraphViewModels<ListFragmentViewModel>(R.id.nav_graph)
+    private val viewModel by activityViewModels<ListFragmentViewModel>()
 
     private val dataListAdapter by lazy { DataListAdapter(::onItemSelected) }
+
+    private val navigator by lazy { ListFragmentNavigator(this) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,14 +46,25 @@ class ListFragment : BaseFragment(), LoaderManager.LoaderCallbacks<Response> {
 
         list.adapter = dataListAdapter
 
+        if (context?.resources?.getBoolean(R.bool.isTabletLandscape) == true) {
+            viewModel.selectedItem.value?.let { onItemSelected(it) }
+        }
+
         setupObservers()
         if (viewModel.dataModels.value == null) {
-            LoaderManager.getInstance(this).initLoader(GET_DATA_LOADER_ID, null, this).forceLoad()
+            LoaderManager.getInstance(this).initLoader(GET_DATA_LOADER_ID, null, this)
+                .forceLoad()
         }
     }
 
     private fun setupObservers() {
         viewModel.dataModels.observe(viewLifecycleOwner, Observer {
+            if (context?.resources?.getBoolean(R.bool.isTabletLandscape) == true && viewModel.selectedItem.value == null) {
+                it.firstOrNull()?.let {
+                    viewModel.selectedItem.value = it
+                    onItemSelected(it)
+                }
+            }
             dataListAdapter.submitList(it)
         })
 
@@ -62,7 +75,9 @@ class ListFragment : BaseFragment(), LoaderManager.LoaderCallbacks<Response> {
 
     private fun onItemSelected(model: Model) {
         viewModel.selectedItem.value = model
-        //TODO navigation
+        model.name?.let {
+            navigator.navigateToDetails(model.name)
+        }
     }
 
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<Response?> {
@@ -79,12 +94,11 @@ class ListFragment : BaseFragment(), LoaderManager.LoaderCallbacks<Response> {
                     null
                 }
             }
-
         }
     }
 
     override fun onLoadFinished(loader: Loader<Response>, response: Response?) {
-        if (response != null && response.isSuccessful) {
+        if (response != null && response.isSuccessful && viewModel.dataModels.value == null) {
             try {
                 val responseData: String = response.body()?.string().orEmpty()
                 val dataModels = Json.decodeFromString<List<Model>>(responseData)
@@ -96,8 +110,9 @@ class ListFragment : BaseFragment(), LoaderManager.LoaderCallbacks<Response> {
     }
 
     override fun onInternetConnectionError(callId: Int?) {
-        showDialog {
-            LoaderManager.getInstance(this).restartLoader(GET_DATA_LOADER_ID, null, this).forceLoad()
+        showInternetConnectionErrorDialog {
+            LoaderManager.getInstance(this).restartLoader(GET_DATA_LOADER_ID, null, this)
+                .forceLoad()
         }
     }
 

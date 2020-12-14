@@ -65,45 +65,53 @@ class DataListAdapter(private val onItemSelected: (Model) -> Unit) :
             } else {
                 setItemBackgroundColor(android.R.color.transparent)
                 setTextColor(android.R.color.black)
-                setupListeners(model)
             }
+
+            setupListeners(model)
+            binding.executePendingBindings()
         }
 
 
         private fun setupListeners(model: Model) {
             binding.listItemLayout.run {
 
-                setOnClickListener { onItemSelected(model) }
+                if (selectedItem?.name == model.name) {
+                    setOnClickListener(null)
+                    setOnTouchListener(null)
+                    onFocusChangeListener = null
+                } else {
+                    setOnClickListener { onItemSelected(model) }
 
-                setOnFocusChangeListener { v, hasFocus ->
-                    if(!hasFocus){
-                        setItemBackgroundColor(android.R.color.transparent)
-                        setTextColor(android.R.color.black)
-                    }
-                }
-
-                setOnTouchListener(object : View.OnTouchListener {
-                    @SuppressLint("ClickableViewAccessibility")
-                    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-                        when (event?.action) {
-                            MotionEvent.ACTION_DOWN -> {
-                                setItemBackgroundColor(R.color.colorItemTouched)
-                                setTextColor(android.R.color.white)
-                                return false
-                            }
-                            MotionEvent.ACTION_UP -> {
-                                setItemBackgroundColor(R.color.colorItemFocused)
-                                return false
-                            }
-                            MotionEvent.ACTION_MOVE -> {
-                                setItemBackgroundColor(android.R.color.transparent)
-                                setTextColor(android.R.color.black)
-                                return true
-                            }
+                    setOnFocusChangeListener { v, hasFocus ->
+                        if (!hasFocus) {
+                            setItemBackgroundColor(android.R.color.transparent)
+                            setTextColor(android.R.color.black)
                         }
-                        return true
                     }
-                })
+
+                    setOnTouchListener(object : View.OnTouchListener {
+                        @SuppressLint("ClickableViewAccessibility")
+                        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                            when (event?.action) {
+                                MotionEvent.ACTION_DOWN -> {
+                                    setItemBackgroundColor(R.color.colorItemTouched)
+                                    setTextColor(android.R.color.white)
+                                    return false
+                                }
+                                MotionEvent.ACTION_UP -> {
+                                    setItemBackgroundColor(R.color.colorItemFocused)
+                                    return false
+                                }
+                                MotionEvent.ACTION_MOVE -> {
+                                    setItemBackgroundColor(android.R.color.transparent)
+                                    setTextColor(android.R.color.black)
+                                    return true
+                                }
+                            }
+                            return false
+                        }
+                    })
+                }
             }
         }
 
